@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>backend.lr_base_model &#8212; consha v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/agogo.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">consha v1 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for backend.lr_base_model</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sqlalchemy</span> <span class="k">as</span> <span class="nn">db</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LinearRegression</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">fuzzy_match</span> <span class="kn">import</span> <span class="n">match</span>
+<span class="kn">from</span> <span class="nn">fuzzy_match</span> <span class="kn">import</span> <span class="n">algorithims</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="n">conn</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SQLALCHEMY_DATABASE_URI</span><span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SQLALCHEMY_DATABASE_URI</span><span class="p">)</span>
+
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="s1">&#39;crawled_data&#39;</span><span class="p">)</span>
+<span class="n">ewg</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="s1">&#39;ewg_product&#39;</span><span class="p">,</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">autoload</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">autoload_with</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="formatted_ewg_ingredient_score"><a class="viewcode-back" href="../../code.html#backend.lr_base_model.formatted_ewg_ingredient_score">[docs]</a><span class="k">def</span> <span class="nf">formatted_ewg_ingredient_score</span><span class="p">(</span><span class="n">ewg</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;calls the ewg ingredient database and creates array of</span>
+<span class="sd">    ingredient, score lists.The scores are calculated as the mean</span>
+<span class="sd">    score for that ingredient,because some ingredients have multiple scores.&#39;&#39;&#39;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="n">ewg</span><span class="p">])</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">ewg_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">ewg</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="c1"># taking mean of score per ingredient as ingredient score</span>
+    <span class="n">ingredient_scores</span> <span class="o">=</span> <span class="n">ewg_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;ingredient&#39;</span><span class="p">)[</span><span class="s1">&#39;ingredient_score&#39;</span><span class="p">]</span> \
+        <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">)</span>
+    <span class="n">ingredient_scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">ingredient_scores</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">ingredient_scores</span></div>
+
+
+<div class="viewcode-block" id="remove_punct"><a class="viewcode-back" href="../../code.html#backend.lr_base_model.remove_punct">[docs]</a><span class="k">def</span> <span class="nf">remove_punct</span><span class="p">(</span><span class="n">string</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Removing punctuation from a given string.</span>
+<span class="sd">    Code from www.geeksforgeeks.org/python-remove-punctuation-from-string/&#39;&#39;&#39;</span>
+    <span class="n">punc</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;!()-[]</span><span class="si">{}</span><span class="s1">;:&#39;&quot;\, &lt;&gt;./?@#$%^&amp;*_~&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">string</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">punc</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">ele</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">string</span></div>
+
+
+<span class="c1"># Fuzzy Matching to match ingredients from amazon with scores from ewg ####</span>
+<div class="viewcode-block" id="string_matching"><a class="viewcode-back" href="../../code.html#backend.lr_base_model.string_matching">[docs]</a><span class="k">def</span> <span class="nf">string_matching</span><span class="p">(</span><span class="n">ewg_string</span><span class="p">,</span> <span class="n">amazon_ingredient</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Matches ewg ingredient strings with amazon ingredient strings.&#39;&#39;&#39;</span>
+    <span class="n">ewg_string</span> <span class="o">=</span> <span class="n">remove_punct</span><span class="p">(</span><span class="n">ewg_string</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="n">amazon_string</span> <span class="o">=</span> <span class="n">remove_punct</span><span class="p">(</span><span class="n">amazon_ingredient</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="n">match_score</span> <span class="o">=</span> <span class="n">algorithims</span><span class="o">.</span><span class="n">cosine</span><span class="p">(</span><span class="n">ewg_string</span><span class="p">,</span> <span class="n">amazon_string</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match_score</span> <span class="o">&gt;</span> <span class="mf">.55</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="ingredient_string_matching"><a class="viewcode-back" href="../../code.html#backend.lr_base_model.ingredient_string_matching">[docs]</a><span class="k">def</span> <span class="nf">ingredient_string_matching</span><span class="p">(</span><span class="n">raw_amz_ingredient_list</span><span class="p">,</span> <span class="n">ewg_ingredient_scores</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Input: raw list of ingredients from amazon - list[str] and</span>
+<span class="sd">       numpy array of ewg ingredients and score pairs</span>
+<span class="sd">       Output: list of scores from ewg database - float&#39;&#39;&#39;</span>
+    <span class="n">ingredient_score_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">ingredient</span> <span class="ow">in</span> <span class="n">raw_amz_ingredient_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">ewg_ingredient</span><span class="p">,</span> <span class="n">ewg_score</span> <span class="ow">in</span> <span class="n">ewg_ingredient_scores</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">string_matching</span><span class="p">(</span><span class="n">ingredient</span><span class="p">,</span> <span class="n">ewg_ingredient</span><span class="p">):</span>
+                <span class="n">ingredient_score_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ewg_score</span><span class="p">))</span>
+                <span class="k">break</span>
+    <span class="k">return</span> <span class="n">ingredient_score_list</span></div>
+
+
+<span class="c1"># second feature: max_three_mean</span>
+<div class="viewcode-block" id="max_three_scores"><a class="viewcode-back" href="../../code.html#backend.lr_base_model.max_three_scores">[docs]</a><span class="k">def</span> <span class="nf">max_three_scores</span><span class="p">(</span><span class="n">ingredient_scores</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Creating feature: mean of top three ingredients.&#39;&#39;&#39;</span>
+    <span class="n">ingredient_scores</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">ingredient_scores</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span></div>
+
+
+<span class="c1"># third feature(s): a count of each value - going to take int of each</span>
+<div class="viewcode-block" id="product_score_count"><a class="viewcode-back" href="../../code.html#backend.lr_base_model.product_score_count">[docs]</a><span class="k">def</span> <span class="nf">product_score_count</span><span class="p">(</span><span class="n">ingredient_scores</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Creating feature:generates count of each score for a list of scores.&#39;&#39;&#39;</span>
+    <span class="n">integer_ingredient_scores</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ingredient_scores</span><span class="p">]</span>
+    <span class="n">count_dictionary</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">integer_ingredient_scores</span><span class="p">)</span>
+
+    <span class="c1"># filling in the gaps with 0s</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">count_dictionary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+            <span class="n">count_dictionary</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">count_dictionary</span></div>
+
+
+<div class="viewcode-block" id="combine_features"><a class="viewcode-back" href="../../code.html#backend.lr_base_model.combine_features">[docs]</a><span class="k">def</span> <span class="nf">combine_features</span><span class="p">(</span><span class="n">sample_amz_ingredient_list</span><span class="p">,</span> <span class="n">ewg</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    combine features for score generating model.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">ewg_ingredient_scores</span> <span class="o">=</span> <span class="n">formatted_ewg_ingredient_score</span><span class="p">(</span><span class="n">ewg</span><span class="p">)</span>
+    <span class="n">ingredient_scores</span> <span class="o">=</span> <span class="n">ingredient_string_matching</span><span class="p">(</span><span class="n">sample_amz_ingredient_list</span><span class="p">,</span>
+                                                   <span class="n">ewg_ingredient_scores</span><span class="p">)</span>
+    <span class="c1"># creating features</span>
+    <span class="n">max_three</span> <span class="o">=</span> <span class="n">max_three_scores</span><span class="p">(</span><span class="n">ingredient_scores</span><span class="p">)</span>
+    <span class="n">ingredient_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_amz_ingredient_list</span><span class="p">)</span>
+    <span class="n">count_dictionary</span> <span class="o">=</span> <span class="n">product_score_count</span><span class="p">(</span><span class="n">ingredient_scores</span><span class="p">)</span>
+    <span class="c1"># combining and formatting features for model</span>
+    <span class="n">x_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">count_dictionary</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">x_df</span><span class="p">[</span><span class="s1">&#39;max_three&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_three</span>
+    <span class="n">x_df</span><span class="p">[</span><span class="s1">&#39;ingredient_count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ingredient_count</span>
+    <span class="n">x_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ingredient_count&#39;</span><span class="p">,</span> <span class="s1">&#39;max_three_mean&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;count_1&#39;</span><span class="p">,</span> <span class="s1">&#39;count_2&#39;</span><span class="p">,</span> <span class="s1">&#39;count_3&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;count_4&#39;</span><span class="p">,</span> <span class="s1">&#39;count_5&#39;</span><span class="p">,</span> <span class="s1">&#39;count_6&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;count_7&#39;</span><span class="p">,</span> <span class="s1">&#39;count_8&#39;</span><span class="p">,</span> <span class="s1">&#39;count_9&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">x_df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<span class="n">ewg_ingredient_scores</span> <span class="o">=</span> <span class="n">formatted_ewg_ingredient_score</span><span class="p">(</span><span class="n">ewg</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_score"><a class="viewcode-back" href="../../code.html#backend.lr_base_model.get_score">[docs]</a><span class="k">def</span> <span class="nf">get_score</span><span class="p">(</span><span class="n">lr</span><span class="p">,</span> <span class="n">amz_ingredient_list</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    covert asin list to list of product info dictionary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lr : sklearn model</span>
+<span class="sd">        sklearn model (Random Forest)</span>
+<span class="sd">    amz_ingredient_list : list</span>
+<span class="sd">        list of ingredients from amazon</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        consha score of 0-10 (lack of ingredients information gets -1)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ingredient_string_matching</span><span class="p">(</span><span class="n">amz_ingredient_list</span><span class="p">,</span>
+                                      <span class="n">ewg_ingredient_scores</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">raw_prediction</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">lr</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">combine_features</span><span class="p">(</span><span class="n">amz_ingredient_list</span><span class="p">,</span>
+                                                       <span class="n">ewg</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="mi">10</span> <span class="o">-</span> <span class="n">raw_prediction</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <p class="caption"><span class="caption-text">Requirements:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Development Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Auto Generated Code Documentation</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Anawat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,206 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>backend.recommendation &#8212; consha v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/agogo.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">consha v1 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for backend.recommendation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">sentence_transformers</span> <span class="kn">import</span> <span class="n">SentenceTransformer</span><span class="p">,</span> <span class="n">util</span>
+
+<span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">Config</span>
+
+<span class="n">conn</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SQLALCHEMY_DATABASE_URI</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s1">&#39;paraphrase-MiniLM-L12-v2&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_recommendation_asin</span><span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="n">amazon_product_embeddings</span><span class="p">,</span>
+                             <span class="n">threshold</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get recommendation list (in asin format)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    description : str</span>
+<span class="sd">        product description</span>
+<span class="sd">    amazon_product_embeddings : pd.DataFrame</span>
+<span class="sd">        description embeddings of all amazon product</span>
+<span class="sd">    threshold : int</span>
+<span class="sd">        lower threshold of consha score (consha_score &gt; threshold)</span>
+<span class="sd">    n : int</span>
+<span class="sd">        number of product return</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">       recommendation list (in asin format)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    SELECT * FROM cached_data.amz_score WHERE consha_score &gt; </span><span class="si">{</span><span class="n">threshold</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">amz_score_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">con</span><span class="o">=</span><span class="n">conn</span><span class="p">)</span>
+    <span class="c1"># print(description)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">amz_score_df</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">amz_score_df</span> <span class="o">=</span> <span class="n">amz_score_df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">amazon_product_embeddings</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;asin&#39;</span><span class="p">),</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;asin&#39;</span><span class="p">)</span>
+        <span class="n">amz_score_df</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">amz_score_df</span><span class="p">[</span><span class="o">~</span><span class="n">amz_score_df</span><span class="p">[</span><span class="s1">&#39;embedding&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="n">input_embedding</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="n">convert_to_tensor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">sim_score</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">pytorch_cos_sim</span><span class="p">(</span>
+            <span class="n">input_embedding</span><span class="p">,</span>
+            <span class="n">amz_score_df</span><span class="p">[</span><span class="s1">&#39;embedding&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">amz_score_df</span><span class="p">[</span><span class="s1">&#39;sim_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sim_score</span>
+        <span class="n">max_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">sim_score</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.7</span>  <span class="c1"># weight of similarity score</span>
+        <span class="n">amz_score_df</span><span class="p">[</span><span class="s1">&#39;final_score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span>
+            <span class="n">amz_score_df</span><span class="p">[</span><span class="s1">&#39;sim_score&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">max_score</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span>
+            <span class="mi">1</span><span class="o">-</span><span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">amz_score_df</span><span class="p">[</span><span class="s1">&#39;consha_score&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">amz_score_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+            <span class="n">by</span><span class="o">=</span><span class="s1">&#39;final_score&#39;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="s1">&#39;asin&#39;</span><span class="p">][:</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span> <span class="nf">_get_info_from_asin</span><span class="p">(</span><span class="n">asin</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    covert asin product info dictionary</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    asin : str</span>
+<span class="sd">        amazon asin</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        product info dictionary</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    SELECT t1.asin, title, product_link,</span>
+<span class="s2">           image_url, price, product_keywords, consha_score</span>
+<span class="s2">    FROM cached_data.amazon_product_500 as t1</span>
+<span class="s2">    JOIN cached_data.amz_score as t2</span>
+<span class="s2">    ON t1.asin = t2.asin</span>
+<span class="s2">    WHERE t1.asin = &#39;</span><span class="si">{</span><span class="n">asin</span><span class="si">}</span><span class="s2">&#39;;&quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">con</span><span class="o">=</span><span class="n">conn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="s1">&#39;records&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="get_recommendation"><a class="viewcode-back" href="../../code.html#backend.recommendation.get_recommendation">[docs]</a><span class="k">def</span> <span class="nf">get_recommendation</span><span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="n">amazon_product_embeddings</span><span class="p">,</span>
+                       <span class="n">threshold</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    covert asin list to list of product info dictionary</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    description : str</span>
+<span class="sd">        product description</span>
+<span class="sd">    amazon_product_embeddings : pd.DataFrame</span>
+<span class="sd">        description embeddings of all amazon product</span>
+<span class="sd">    threshold : int (default=7)</span>
+<span class="sd">        lower threshold of consha score (consha_score &gt; threshold)</span>
+<span class="sd">    n : int (default=3)</span>
+<span class="sd">        number of product return</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list of dict</span>
+<span class="sd">        list of product info dictionary</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">asin_list</span> <span class="o">=</span> <span class="n">_get_recommendation_asin</span><span class="p">(</span>
+        <span class="n">description</span><span class="p">,</span> <span class="n">amazon_product_embeddings</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">asin_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_get_info_from_asin</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">asin_list</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <p class="caption"><span class="caption-text">Requirements:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Development Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Auto Generated Code Documentation</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Anawat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

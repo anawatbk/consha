@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- SITE TITTLE -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consha</title>
+
+  <!-- PLUGINS CSS STYLE -->
+  <!-- Bootstrap -->
+  <link href="/static/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Themefisher Font -->
+  <link href="/static/plugins/themefisher-font/style.css" rel="stylesheet">
+  <!-- Slick Carousel -->
+  <link href="/static/plugins/slick/slick.css" rel="stylesheet">
+  <!-- Slick Carousel Theme -->
+  <link href="/static/plugins/slick/slick-theme.css" rel="stylesheet">
+
+  <!-- CUSTOM CSS -->
+  <link href="/static/css/style.css" rel="stylesheet">
+
+  <!-- FAVICON -->
+  <link href="/static/images/favicon.png" rel="shortcut icon">
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-88XL5EJV99"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-88XL5EJV99');
+  </script>
+</head>
+
+<body class="body-wrapper">
+
+
+<nav class="navbar main-nav fixed-top navbar-expand-lg">
+  <div class="container">
+      <a class="navbar-brand" href="{{ url_for('index') }}"><img src="/static/images/logo.png" alt="logo"></a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="tf-ion-android-menu"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+      <!-- <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#home">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#feature">Features</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#pricing">Business Partnership</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#team">Team</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#contact">Contact</a>
+        </li>
+      </ul> -->
+      </div>
+  </div>
+</nav>
+
+<!--===========================
+=       URL search page       =
+============================-->
+
+<section class="about section bg-1" id="about">
+  <div class="container">
+      <div class="row">
+          <div class="col-lg-5 mr-auto"><br><br><br><br>
+              <h4>Enter product url:</h4><br>
+                  <div class="container" onclick="gtag('event', 'search product', {'event_category':'click', 'event_label':'product search form', value:10})">
+                      <form method="POST" enctype="multipart/form-data">
+                          {{form.csrf_token}}
+                          &ensp; {{ form.website}}</br><br><br>
+                          &ensp;{{ form.submit}}<br><br>
+                      </form>
+                          {% if form.errors %}
+                          Validation errors:
+                          {{ form.errors }}
+                          {% endif %}
+                  </div>
+
+
+
+                <!-- Image Content -->
+                <div class="image-block">
+                    <!-- <img src="images/phones/iphone-feature.png" alt="iphone-feature" class="img-fluid"> -->
+
+            <div class="col-lg-6 col-md-10 m-md-auto align-self-center ml-auto">
+                <div class="about-block">
+                    <!-- About 01 -->
+                    <!-- <div class="about-item">
+                        <div class="icon">
+                            <i class="tf-ion-ios-paper-outline"></i>
+                        </div>
+                        <div class="content">
+                            <h5>Creative Design</h5>
+                            <p>But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete accounta</p>
+                        </div>
+                    </div> -->
+                    <!-- About 02 -->
+                    <!-- <div class="about-item active">
+                        <div class="icon">
+                            <i class="tf-globe"></i>
+                        </div>
+                        <div class="content">
+                            <h5>Easy to Use</h5>
+                            <p>But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete accounta</p>
+                        </div>
+                    </div> -->
+                    <!-- About 03 -->
+                    <!-- <div class="about-item">
+                        <div class="icon">
+                            <i class="tf-circle-compass"></i>
+                        </div>
+                        <div class="content">
+                            <h5>Best User Experience</h5>
+                            <p>But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete accounta</p>
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--====  End of URL search page  ====-->
+
+<!--============================
+=            Footer            =
+=============================-->
+
+<footer class="footer-main">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 mr-auto">
+          <!-- <div class="footer-logo">
+            <img src="/static/images/logo.png" alt="footer-logo"> -->
+          </div>
+          <div class="copyright">
+            <p>@2018 Themefisher All Rights Reserved  |  Design By : <a href="https://themefisher.com/" target="_blank">Themefisher</a>  Team
+              <br>Get More <a href="https://themewagon.com/theme_tag/free/" target="_blank">Free Bootstrap Templates</a>
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-6 text-lg-right">
+          <!-- Social Icons -->
+          <ul class="social-icons list-inline">
+            <li class="list-inline-item">
+              <a href=""><i class="tf-ion-social-facebook"></i></a>
+            </li>
+            <li class="list-inline-item">
+              <a href=""><i class="tf-ion-social-twitter"></i></a>
+            </li>
+            <li class="list-inline-item">
+              <a href=""><i class="tf-ion-social-linkedin"></i></a>
+            </li>
+            <li class="list-inline-item">
+              <a href=""><i class="tf-ion-social-instagram-outline"></i></a>
+            </li>
+          </ul>
+          <!-- Footer Links -->
+          <!-- <ul class="footer-links list-inline">
+            <li class="list-inline-item">
+              <a href="#">ABOUT</a>
+            </li>
+            <li class="list-inline-item">
+              <a href="#">TEAM</a>
+            </li>
+            <li class="list-inline-item">
+              <a href="#">CONTACT</a>
+            </li>
+          </ul> -->
+        </div>
+      </div>
+    </div>
+</footer>
+
+
+
+  <!-- JAVASCRIPTS -->
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBI14J_PNWVd-m0gnUBkjmhoQyNyd7nllA" async defer></script>
+
+  <script src="plugins/jquery/jquery.js"></script>
+  <script src="plugins/popper/popper.min.js"></script>
+  <script src="plugins/bootstrap/js/bootstrap.min.js"></script>
+  <script src="plugins/waypoints/jquery.waypoints.min.js"></script>
+  <script src="plugins/slick/slick.min.js"></script>
+  <script src="plugins/smoothscroll/SmoothScroll.min.js"></script>
+  <script src="js/custom.js"></script>
+
+
+
+</html>

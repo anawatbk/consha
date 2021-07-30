@@ -1,0 +1,2 @@
+eb init consha-website --region us-west-2 --platform Docker --k $PEM_NAME
+eb create env-consha --region us-west-2 --verbose --envvars AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID --envvars AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY --envvars API_KEY=$API_KEY --envvars DBUSER=$DBUSER --envvars DBPWD=$DBPWD

@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- SITE TITTLE -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consha</title>
+  
+  <!-- PLUGINS CSS STYLE -->
+  <!-- Bootstrap -->
+  <link href="/static/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Themefisher Font -->  
+  <link href="/static/plugins/themefisher-font/style.css" rel="stylesheet">
+  <!-- Slick Carousel -->
+  <link href="/static/plugins/slick/slick.css" rel="stylesheet">
+  <!-- Slick Carousel Theme -->
+  <link href="/static/plugins/slick/slick-theme.css" rel="stylesheet">
+  
+  <!-- CUSTOM CSS -->
+  <link href="/static/css/style.css" rel="stylesheet">
+
+  <!-- FAVICON -->
+  <link href="/static/images/favicon.png" rel="shortcut icon">
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-88XL5EJV99"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-88XL5EJV99');
+  </script>
+</head>
+
+<body class="body-wrapper">
+
+
+<nav class="navbar main-nav fixed-top navbar-expand-lg">
+  <div class="container">
+      <a class="navbar-brand" href="{{ url_for('index') }}"><img src="/static/images/logo.png" alt="logo"></a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="tf-ion-android-menu"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#home">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#team">Team</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link scrollTo" href="#contact">Contact</a>
+        </li>
+      </ul>
+      </div>
+  </div>
+</nav>
+<!--=====================================
+=            Homepage Banner            =
+======================================-->
+
+<section class="banner bg-1" id="home">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-8 align-self-center">
+				<!-- Contents -->
+				<div class="content-block">
+					<br><h3>Conscious shopping made easy.</h3><br><br>
+
+					<a href="upload" class="btn btn-main-rounded" role="button" onclick="gtag('event', 'main page demo', {'event_category':'click', 'event_label':'main page demo', value:1})">Try out the demo!</a><br><br>
+					<a href="login" class="btn btn-main-rounded" role="button" onclick="gtag('event', 'logging in', {'event_category':'click', 'event_label':'logging in', value:3})"> Login</a>
+
+				</div>
+			</div>
+			<div class="col-md-4">
+				<!-- App Image -->
+				<div class="image-block">
+					<img class="img-fluid phone-thumb rounded" src="/static/images/consha_preview.png" alt="iphone-banner">
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!--====  End of Homepage Banner  ====-->
+
+<!--==============================
+=      Features for Shoppers            =
+===============================-->
+
+<section class="section feature" id="feature">
+	<div class="container">
+		<div class="row">
+			<div class="col-12">
+				<div class="section-title">
+					<h2>For Shoppers</h2>
+					<p>Our machine learning models provide product scores you can trust and recommendations of better products we're sure you'll enjoy.</p>
+				</div>
+			</div>
+		</div>
+		<div class="row bg-elipse">
+			<div class="col-lg-4 align-self-center text-center text-lg-right">
+				<!-- Feature Item -->
+				<div class="feature-item">
+					<!-- Icon -->
+					<div class="icon">
+						<i class="tf-ion-earth"></i>
+					</div>
+					<!-- Content -->
+					<div class="content">
+						<h5>EWG-inspired product scores</h5>
+						<p>Our scores are based on the Environmental Working Group's rigorous scoring methodology</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-4 text-center align-self-center">
+				<!-- Feature Item -->
+				<div class="feature-item">
+					<!-- Icon -->
+					<div class="icon">
+						<i class="tf-ion-ios-lightbulb-outline"></i>
+					</div>
+					<!-- Content -->
+					<div class="content">
+						<h5>Smart Recommendations</h5>
+						<p>Our machine learning models find similar products made with healthier ingredients.</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-4 text-center text-lg-left align-self-center">
+				<!-- Feature Item -->
+				<div class="feature-item">
+					<!-- Icon -->
+					<div class="icon">
+						<i class="tf-ion-ios-timer-outline"></i>
+					</div>
+					<!-- Content -->
+					<div class="content">
+						<h5>Save time</h5>
+						<p>We greatly reduce the amount of time you'll need to spend researching products.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!--====  End of Features for Shoppers  ====-->
+
+<!--==============================
+=      Features for Businesses            =
+===============================-->
+
+<section class="section feature" id="feature">
+	<div class="container">
+		<div class="row">
+			<div class="col-12">
+				<div class="section-title">
+					<h2>For Businesses</h2>
+					<p>Partnering with us is a low-risk way of promoting your healthy, sustainable products.</p>
+				</div>
+			</div>
+		</div>
+		<div class="row bg-elipse">
+			<div class="col-lg-4 align-self-center text-center text-lg-right">
+				<!-- Feature Item -->
+				<div class="feature-item">
+					<!-- Icon -->
+					<div class="icon">
+						<i class="tf-magnifying-glass"></i>
+					</div>
+					<!-- Content -->
+					<div class="content">
+						<h5>Increased awareness</h5>
+						<p>We help make your brand and products known!</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-4 text-center align-self-center">
+
+				<!-- Feature Item -->
+				<div class="feature-item">
+					<!-- Icon -->
+					<div class="icon">
+						<i class="tf-linegraph"></i>
+					</div>
+					<!-- Content -->
+					<div class="content">
+						<h5>Increased traffic</h5>
+						<p>We direct people to your product pages. Increased traffic leads to increased sales.</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-4 text-center text-lg-left align-self-center">
+				<!-- Feature Item -->
+				<div class="feature-item">
+					<!-- Icon -->
+					<div class="icon">
+						<i class="tf-ion-cash"></i>
+					</div>
+					<!-- Content -->
+					<div class="content">
+						<h5>Low risk advertising</h5>
+						<p>You only pay us if we successfully increase your traffic and sales.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!--====  End of Features for Businesses  ====-->
+
+<!--==========================
+=            Team            =
+===========================-->
+
+<section class="section team bg-shape-two" id="team">
+	<div class="container">
+		<div class="row">
+			<div class="col-12">
+				<div class="section-title">
+					<h2>Our Team</h2>
+					<p>With a variety of backgrounds, the team brings unique values and perspectives to the table
+						so that consha can support sustainable businesses and empower users to make well-informed
+						choices in the products they buy.
+					 </p>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-lg-3 col-md-6">
+				<!-- Team Member -->
+
+<div class="team-member text-center">
+	<div class="image">
+		<img class="img-fluid" src="/static/images/amee_.png" alt="team-member">
+	</div>
+	<div class="name">
+		<h5>Amee Tan</h5>
+	</div>
+	<div class="position">
+		<p>CEO</p>
+	</div>
+
+	<ul class="social-icons list-inline">
+
+		<li class="list-inline-item">
+			<a href="https://www.linkedin.com/in/ameetan/"><i class="tf-ion-social-linkedin"></i></a>
+		</li>
+
+	</ul>
+</div>
+			</div>
+			<div class="col-lg-3 col-md-6">
+				<!-- Team Member -->
+<div class="team-member text-center">
+	<div class="image">
+		<img class="img-fluid" src="/static/images/danh_.png" alt="team-member">
+	</div>
+	<div class="name">
+		<h5>Danh Nguyen</h5>
+	</div>
+	<div class="position">
+		<p>CFO</p>
+	</div>
+
+	<ul class="social-icons list-inline">
+
+		<li class="list-inline-item">
+			<a href="https://www.linkedin.com/in/danhnguyen01/"><i class="tf-ion-social-linkedin"></i></a>
+		</li>
+
+	</ul>
+</div>
+			</div>
+			<div class="col-lg-3 col-md-6">
+				<!-- Team Member -->
+<div class="team-member text-center">
+	<div class="image">
+		<img class="img-fluid" src="/static/images/anawat_.png" alt="team-member">
+	</div>
+	<div class="name">
+		<h5>Anawat Putwanphen</h5>
+	</div>
+	<div class="position">
+		<p>CTO</p>
+	</div>
+
+	<ul class="social-icons list-inline">
+
+		<li class="list-inline-item">
+			<a href="https://www.linkedin.com/in/anawatp/"><i class="tf-ion-social-linkedin"></i></a>
+
+	</ul>
+</div>
+			</div>
+			<div class="col-lg-3 col-md-6">
+
+				<!-- Team Member -->
+
+<div class="team-member text-center">
+	<div class="image">
+		<img class="img-fluid" src="/static/images/okeefe_.png" alt="team-member">
+	</div>
+	<div class="name">
+		<h5>Okeefe Niemann</h5>
+	</div>
+	<div class="position">
+		<p>CTO</p>
+	</div>
+
+	<ul class="social-icons list-inline">
+
+		<li class="list-inline-item">
+			<a href="https://www.linkedin.com/in/okeefeniemann/"><i class="tf-ion-social-linkedin"></i></a>
+		</li>
+
+	</ul>
+</div>
+			</div>
+			<div class="col-lg-3 col-md-6">
+
+				<!-- Team Member -->
+<br/>
+<div class="team-member text-center">
+	<div class="image">
+		<img class="img-fluid" src="/static/images/huidong_.png" alt="team-member">
+	</div>
+	<div class="name">
+		<h5>Huidong Xiu</h5>
+	</div>
+	<div class="position">
+		<p>Data Engineer</p>
+	</div>
+
+	<ul class="social-icons list-inline">
+
+		<li class="list-inline-item">
+			<a href="https://www.linkedin.com/in/huidong-xu/"><i class="tf-ion-social-linkedin"></i></a>
+		</li>
+
+	</ul>
+</div>
+			</div>
+			<div class="col-lg-3 col-md-6">
+
+<br/>
+<div class="team-member text-center">
+	<div class="image">
+		<img class="img-fluid" src="/static/images/yihong_.png" alt="team-member">
+	</div>
+	<div class="name">
+		<h5>Sophie Shen</h5>
+	</div>
+	<div class="position">
+		<p>Data Engineer</p>
+	</div>
+
+	<ul class="social-icons list-inline">
+
+		<li class="list-inline-item">
+			<a href="https://www.linkedin.com/in/sophie-shen/"><i class="tf-ion-social-linkedin"></i></a>
+		</li>
+
+	</ul>
+</div>
+			</div>
+			<div class="col-lg-3 col-md-6">
+
+<br/>
+<div class="team-member text-center">
+	<div class="image">
+		<img class="img-fluid" src="/static/images/jared_.png" alt="team-member">
+	</div>
+	<div class="name">
+		<h5>Jared Mlekush</h5>
+	</div>
+	<div class="position">
+		<p>Data Scientist</p>
+	</div>
+
+	<ul class="social-icons list-inline">
+
+		<li class="list-inline-item">
+			<a href="https://www.linkedin.com/in/jaredmlekush/"><i class="tf-ion-social-linkedin"></i></a>
+		</li>
+
+	</ul>
+</div>
+			</div>
+			<div class="col-lg-3 col-md-6">
+
+<br/>
+<div class="team-member text-center">
+	<div class="image">
+		<img class="img-fluid" src="/static/images/michelle_.png" alt="team-member">
+	</div>
+	<div class="name">
+		<h5>Michelle JanneyCoyle</h5>
+	</div>
+	<div class="position">
+		<p>Data Scientist</p>
+	</div>
+
+	<ul class="social-icons list-inline">
+
+		<li class="list-inline-item">
+			<a href="https://www.linkedin.com/in/michelle-janneycoyle/"><i class="tf-ion-social-linkedin"></i></a>
+		</li>
+
+	</ul>
+</div>
+			</div>
+			<div class="col-lg-3 col-md-6">
+
+</section>
+
+<!--====  End of Team  ====-->
+
+<section class="section cta-subscribe" id="contact">
+	<div class="container">
+		<div class="row bg-elipse-red">
+			<div class="col-lg-4">
+				<!-- <div class="image"><img src="images/phones/iphone-banner.png" alt="iphone-app"></div> -->
+			</div>
+			<div class="col-lg-8 align-self-center">
+				<div class="content">
+					<div class="title">
+						<h2>Subscribe Our Newsletter</h2>
+					</div>
+					<div class="description">
+						<p>The team is continually making improvements with rating systems and actively refining business partnerships.
+						Subscribe below to keep up with upgrades, new implementations, and other information about the consha
+						product recommendation app!</p>
+					</div>
+					<form action="#">
+						<div class="input-group">
+						    <input type="text" class="form-control main" placeholder="Enter your email address">
+						    <span class="input-group-addon tf-ion-android-send" id="btnGroupAddon"></span>
+						  </div>
+					</form>
+					<div class="subscription-tag text-right">
+						<p>Subscribe To Our Newsletter & Stay Updated</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!--============================
+=            Footer            =
+=============================-->
+
+<footer class="footer-main">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 mr-auto">
+          <!-- <div class="footer-logo">
+            <img src="/static/images/logo.png" alt="footer-logo"> -->
+          </div>
+          <div class="copyright">
+            <p>@2018 Themefisher All Rights Reserved  |  Design By : <a href="https://themefisher.com/" target="_blank">Themefisher</a>  Team
+              <br>Get More <a href="https://themewagon.com/theme_tag/free/" target="_blank">Free Bootstrap Templates</a>
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-6 text-lg-right">
+          <!-- Social Icons -->
+          <ul class="social-icons list-inline">
+            <li class="list-inline-item">
+              <a href=""><i class="tf-ion-social-facebook"></i></a>
+            </li>
+            <li class="list-inline-item">
+              <a href=""><i class="tf-ion-social-twitter"></i></a>
+            </li>
+            <li class="list-inline-item">
+              <a href=""><i class="tf-ion-social-linkedin"></i></a>
+            </li>
+            <li class="list-inline-item">
+              <a href=""><i class="tf-ion-social-instagram-outline"></i></a>
+            </li>
+          </ul>
+          <!-- Footer Links -->
+          <ul class="footer-links list-inline">
+            <li class="list-inline-item">
+              <a href="#">ABOUT</a>
+            </li>
+            <li class="list-inline-item">
+              <a href="#">TEAM</a>
+            </li>
+            <li class="list-inline-item">
+              <a href="#">CONTACT</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+</footer>
+
+
+
+  <!-- JAVASCRIPTS -->
+  
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBI14J_PNWVd-m0gnUBkjmhoQyNyd7nllA" async defer></script>
+
+  <script src="plugins/jquery/jquery.js"></script>
+  <script src="plugins/popper/popper.min.js"></script>
+  <script src="plugins/bootstrap/js/bootstrap.min.js"></script>
+  <script src="plugins/waypoints/jquery.waypoints.min.js"></script>
+  <script src="plugins/slick/slick.min.js"></script>
+  <script src="plugins/smoothscroll/SmoothScroll.min.js"></script>
+  <script src="js/custom.js"></script>
+  
+</body>
+
+</html>

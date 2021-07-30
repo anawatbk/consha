@@ -1,0 +1,342 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>app.routes &#8212; consha v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/agogo.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">consha v1 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for app.routes</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">application</span><span class="p">,</span> <span class="n">classes</span><span class="p">,</span> <span class="n">db</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">get_flashed_messages</span><span class="p">,</span> <span class="n">flash</span>
+<span class="kn">from</span> <span class="nn">flask_wtf</span> <span class="kn">import</span> <span class="n">FlaskForm</span>
+<span class="kn">from</span> <span class="nn">flask_wtf.file</span> <span class="kn">import</span> <span class="n">FileField</span><span class="p">,</span> <span class="n">FileRequired</span>
+<span class="kn">from</span> <span class="nn">wtforms</span> <span class="kn">import</span> <span class="n">SubmitField</span><span class="p">,</span> <span class="n">StringField</span><span class="p">,</span> <span class="n">SelectField</span>
+<span class="kn">from</span> <span class="nn">wtforms.validators</span> <span class="kn">import</span> <span class="n">URL</span><span class="p">,</span> <span class="n">Length</span><span class="p">,</span> <span class="n">DataRequired</span>
+<span class="kn">from</span> <span class="nn">flask_login</span> <span class="kn">import</span> <span class="n">current_user</span><span class="p">,</span> <span class="n">login_user</span><span class="p">,</span> <span class="n">login_required</span><span class="p">,</span> <span class="n">logout_user</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="URLForm"><a class="viewcode-back" href="../../code.html#app.routes.URLForm">[docs]</a><span class="k">class</span> <span class="nc">URLForm</span><span class="p">(</span><span class="n">FlaskForm</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    FileField</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># website = StringField(</span>
+    <span class="c1">#             &#39;Product URL&#39;,</span>
+    <span class="c1">#             validators=[Length(min=4)]</span>
+    <span class="c1"># )</span>
+    <span class="n">url_choices</span> <span class="o">=</span>  <span class="p">[(</span><span class="s1">&#39;https://www.amazon.com/Aveeno-Daily-Moisturizing-Lotion&#39;</span>
+                     <span class="s1">&#39;-Skin/dp/B07C14X9HT&#39;</span><span class="p">,</span> <span class="s1">&#39;Aveeno Body Lotion&#39;</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;https://www.amazon.com%Dr-Bronners-Pure-Castile-Acne-Pro&#39;</span>
+                    <span class="s1">&#39;ne-Biodegradable</span><span class="si">%d</span><span class="s1">p%B001ET77P2</span><span class="si">%r</span><span class="s1">ef=sr_1_4?dchild=1&amp;gclid&#39;</span>
+                    <span class="s1">&#39;=Cj0KCQjw5PGFBhC2ARIsAIFIMNdj9RbwVHaHBr7JY8H_ER79L58euSV&#39;</span>
+                    <span class="s1">&#39;4kBO9IeJ6UqZ-bT9ec94PCw8aArHbEALw_wcB&amp;hvadid=32346313380&#39;</span>
+                    <span class="s1">&#39;4&amp;hvdev=c&amp;hvlocphy=9032083&amp;hvnetw=g&amp;hvqmt=b&amp;hvrand=12200&#39;</span>
+                    <span class="s1">&#39;854441513837425&amp;hvtargid=kwd-614917226103&amp;hydadcr=8201_1&#39;</span>
+                    <span class="s1">&#39;1031272&amp;keywords=dr+bronner</span><span class="si">%27s</span><span class="s1">+pure+castile+liquid&amp;qid=&#39;</span>
+                    <span class="s1">&#39;1623036314&amp;sr=8-4&#39;</span><span class="p">,</span> <span class="s1">&#39;Dr. Bronners Soap&#39;</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;https://www.amazon.com</span><span class="si">%E</span><span class="s1">minence-Corrective-Exfoliati&#39;</span>
+                    <span class="s1">&#39;ng-Cleanser-Treatment</span><span class="si">%d</span><span class="s1">p%B01LZN7CPG</span><span class="si">%r</span><span class="s1">ef=sr_1_1?dchild=1&amp;k&#39;</span>
+                    <span class="s1">&#39;eywords=skin+care+organic+face+wash&amp;qid=1623036685&amp;sr&#39;</span>
+                    <span class="s1">&#39;=8-1&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Eminence Age Cleanser&#39;</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;https://www.amazon.com%Sun-Bum-Moisturizing-Protection-&#39;</span>
+                    <span class="s1">&#39;Hypoallergenic</span><span class="si">%d</span><span class="s1">p%B004XGLE7K</span><span class="si">%r</span><span class="s1">ef=sr_1_4?dchild=1&amp;keywor&#39;</span>
+                    <span class="s1">&#39;ds=sun+bum+sunscreen&amp;qid=1623037253&amp;rdc=1&amp;sr=8-4&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Sun Bum Sunscreen&#39;</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;https://www.amazon.com%Burts-Bees-Moisturizing-Original-&#39;</span>
+                    <span class="s1">&#39;Peppermint</span><span class="si">%d</span><span class="s1">p%B0054LHI5A</span><span class="si">%r</span><span class="s1">ef=sr_1_1_sspa?dchild=1&amp;keywor&#39;</span>
+                    <span class="s1">&#39;ds=chapstick&amp;qid=1623037323&amp;rdc=1&amp;sr=8-1-spons&amp;psc=1&amp;spL&#39;</span>
+                    <span class="s1">&#39;a=ZW5jcnlwdGVkUXVhbGlmaWVyPUExNkxaQ1pMSjhIRzJZJmVuY3J5cH&#39;</span>
+                    <span class="s1">&#39;RlZElkPUEwOTIzMjc2M1JQRjNBTjYySjI1TCZlbmNyeXB0ZWRBZElkPU&#39;</span>
+                    <span class="s1">&#39;EwNTAxNTYySTFQRkozOVozVFU4JndpZGdldE5hbWU9c3BfYXRmJmFjdG&#39;</span>
+                    <span class="s1">&#39;lvbj1jbGlja1JlZGlyZWN0JmRvTm90TG9nQ2xpY2s9dHJ1ZQ==&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Burts Bees Lip Balm&#39;</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;https://www.amazon.com%CeraVe-Moisturizing-Lotion-Hyalur&#39;</span>
+                    <span class="s1">&#39;onic-Fragrance</span><span class="si">%d</span><span class="s1">p%B000YJ2SLG</span><span class="si">%r</span><span class="s1">ef=sr_1_31?crid=34WSU57D15&#39;</span>
+                    <span class="s1">&#39;N46&amp;dchild=1&amp;keywords=natural+lotion&amp;qid=1623037446&amp;spre&#39;</span>
+                    <span class="s1">&#39;fix=natural+%2Caps%2C230&amp;sr=8-31&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;CeraVe Moisturizing Lotion&#39;</span><span class="p">)</span>
+                   <span class="p">]</span>
+    <span class="n">website</span> <span class="o">=</span> <span class="n">SelectField</span><span class="p">(</span>
+        <span class="s1">&#39;Product List&#39;</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="n">url_choices</span><span class="p">,</span>
+        <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">DataRequired</span><span class="p">()]</span>
+    <span class="p">)</span>
+
+    <span class="n">submit</span> <span class="o">=</span> <span class="n">SubmitField</span><span class="p">(</span><span class="s1">&#39;Submit&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FileForm"><a class="viewcode-back" href="../../code.html#app.routes.FileForm">[docs]</a><span class="k">class</span> <span class="nc">FileForm</span><span class="p">(</span><span class="n">FlaskForm</span><span class="p">):</span>
+    <span class="n">file_selector</span> <span class="o">=</span> <span class="n">FileField</span><span class="p">(</span><span class="s1">&#39;File&#39;</span><span class="p">,</span> <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">FileRequired</span><span class="p">()])</span>
+    <span class="n">submit</span> <span class="o">=</span> <span class="n">SubmitField</span><span class="p">(</span><span class="s1">&#39;Submit&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="product_score"><a class="viewcode-back" href="../../code.html#app.routes.product_score">[docs]</a><span class="k">def</span> <span class="nf">product_score</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gives EWG score either for found product or the predicted score for machine</span>
+<span class="sd">    learning model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="o">...</span></div>
+
+
+<div class="viewcode-block" id="check_for_product"><a class="viewcode-back" href="../../code.html#app.routes.check_for_product">[docs]</a><span class="k">def</span> <span class="nf">check_for_product</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks to see if a score is present in RDS database created by EWG</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="o">...</span></div>
+
+
+<div class="viewcode-block" id="call_model"><a class="viewcode-back" href="../../code.html#app.routes.call_model">[docs]</a><span class="k">def</span> <span class="nf">call_model</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calls machine learning model to calculate an approximate EWG score based</span>
+<span class="sd">    off product ingredients and product description</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="o">...</span></div>
+
+
+<div class="viewcode-block" id="index"><a class="viewcode-back" href="../../code.html#app.routes.index">[docs]</a><span class="nd">@application</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="nd">@application</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/index&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Index page: Renders a webpage with a link entry box and a submit button</span>
+
+<span class="sd">    This page should redirect to &quot;display recommendations&quot; with the api call</span>
+<span class="sd">    and all the relevant information</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># print(form.validate_on_submit())</span>
+    <span class="c1"># if form.validate_on_submit():</span>
+    <span class="c1">#     url = form.website.data</span>
+    <span class="c1">#     if &#39;https://&#39; in url:</span>
+    <span class="c1">#         url = url[8:].replace(&#39;/&#39;, &#39;%&#39;)</span>
+    <span class="c1">#     return redirect(url_for(&#39;recommendations&#39;,</span>
+    <span class="c1">#                             filler=&#39;page&#39;,</span>
+    <span class="c1">#                             product_url=url))</span>
+
+    <span class="c1"># # print(&quot;What about here?&quot;)</span>
+    <span class="c1"># return render_template(&#39;index_original.html&#39;, form=form)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">URLForm</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">():</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">website</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="s1">&#39;https://&#39;</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[</span><span class="mi">8</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;recommendations&#39;</span><span class="p">,</span>
+                                <span class="n">filler</span><span class="o">=</span><span class="s1">&#39;page&#39;</span><span class="p">,</span>
+                                <span class="n">product_url</span><span class="o">=</span><span class="n">url</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;index.html&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">)</span></div>
+
+
+<span class="nd">@application</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/upload&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">upload</span><span class="p">():</span>
+    <span class="c1"># file = FileForm()</span>
+    <span class="c1"># print(file.validate_on_submit())</span>
+    <span class="c1"># if file.validate_on_submit():</span>
+    <span class="c1">#     f = file.file_selector.data</span>
+    <span class="c1">#     filename = f.filename</span>
+
+    <span class="c1">#     file_dir_path = os.path.join(application.instance_path, &#39;files&#39;)</span>
+    <span class="c1">#     file_path = os.path.join(file_dir_path, filename)</span>
+    <span class="c1">#     f.save(file_path)</span>
+
+    <span class="c1">#     return redirect(url_for(&#39;index&#39;))</span>
+
+    <span class="c1"># return render_template(&#39;upload.html&#39;, form=file)</span>
+
+    <span class="n">form</span> <span class="o">=</span> <span class="n">URLForm</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">():</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">website</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="s1">&#39;https://&#39;</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[</span><span class="mi">8</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;recommendations&#39;</span><span class="p">,</span>
+                                <span class="n">filler</span><span class="o">=</span><span class="s1">&#39;page&#39;</span><span class="p">,</span>
+                                <span class="n">product_url</span><span class="o">=</span><span class="n">url</span><span class="p">))</span>
+
+    <span class="c1"># print(&quot;What about here?&quot;)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;upload.html&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="recommendations"><a class="viewcode-back" href="../../code.html#app.routes.recommendations">[docs]</a><span class="nd">@application</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/recommendations/&lt;filler&gt;&amp;url=&lt;product_url&gt;&#39;</span><span class="p">,</span>
+                   <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">recommendations</span><span class="p">(</span><span class="n">filler</span><span class="p">,</span> <span class="n">product_url</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    1) Takes in the product link and calls the API (rainforest or &quot;fake&quot;</span>
+<span class="sd">       use case)</span>
+<span class="sd">    2) Determine EWG score either by RDS database or ML model</span>
+
+<span class="sd">    3) Two cases:</span>
+<span class="sd">        a. If the product has a sufficiently good score, return product image,</span>
+<span class="sd">           description, and link to it.</span>
+<span class="sd">        b. If product is no good, look up scores of recommended products and</span>
+<span class="sd">           provide a list of product/description/values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Hard Code Amazon Info:</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">a_query</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">Amazon</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">asin</span><span class="o">=</span><span class="s1">&#39;B07C14X9HT&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+
+    <span class="c1"># If the amazon asin doesn&#39;t yet exist in the database</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#####################&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Into exception&quot;</span><span class="p">)</span>
+        <span class="c1">#API call for value</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">new_entry</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">Amazon</span><span class="p">()</span>
+        <span class="n">new_entry</span><span class="o">.</span><span class="n">add_values</span><span class="p">(</span><span class="o">**</span><span class="n">results</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">new_entry</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">ommit</span><span class="p">()</span>
+
+
+    <span class="n">query1</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">EWG</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">company</span><span class="o">=</span><span class="s1">&#39;Just the Goods&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="n">query2</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">EWG</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">company</span><span class="o">=</span><span class="s1">&#39;CeraVe&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="n">query3</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">EWG</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">company</span><span class="o">=</span><span class="s1">&#39;Shea Moisture&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="n">query_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">query1</span><span class="p">,</span> <span class="n">query2</span><span class="p">,</span> <span class="n">query3</span><span class="p">]</span>
+<span class="c1">#     print(f&quot;id: {query.id}&quot;)</span>
+<span class="c1">#     print(f&quot;link: {query.product_url}</span>
+    <span class="n">product_url</span> <span class="o">=</span> <span class="n">product_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;recommendations.html&#39;</span><span class="p">,</span> <span class="n">product_url</span><span class="o">=</span><span class="n">product_url</span><span class="p">,</span>
+                                                   <span class="n">query_list</span><span class="o">=</span><span class="n">query_list</span><span class="p">,</span>
+                                                   <span class="n">a_query</span><span class="o">=</span><span class="n">a_query</span><span class="p">)</span></div>
+
+<span class="c1"># Login system</span>
+<span class="nd">@application</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/register&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">register</span><span class="p">():</span>
+    <span class="n">registration_form</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">RegistrationForm</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">registration_form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">():</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">registration_form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">registration_form</span><span class="o">.</span><span class="n">email</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">registration_form</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">check_user</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="n">check_email</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">check_user</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Username already exist&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;register.html&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">registration_form</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">check_email</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Email already exist&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;register.html&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">registration_form</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">User</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;registered.html&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;register.html&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">registration_form</span><span class="p">)</span>
+
+<span class="nd">@application</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/login&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">login</span><span class="p">():</span>
+    <span class="n">login_form</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">LogInForm</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">login_form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">():</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="n">login_form</span><span class="o">.</span><span class="n">username</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">login_form</span><span class="o">.</span><span class="n">password</span><span class="o">.</span><span class="n">data</span>
+        <span class="c1"># Look for it in the database.</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">classes</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+        <span class="c1"># Login and validate the user.</span>
+        <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">user</span><span class="o">.</span><span class="n">check_password</span><span class="p">(</span><span class="n">password</span><span class="p">):</span>
+            <span class="n">login_user</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;logged_in&#39;</span><span class="p">))</span>
+
+
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;login.html&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">login_form</span><span class="p">)</span>
+
+<span class="nd">@application</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/logged_in&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">logged_in</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;logged_in.html&#39;</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">current_user</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+
+
+<span class="nd">@application</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/logout&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span> <span class="nf">logout</span><span class="p">():</span>
+    <span class="n">logout_user</span><span class="p">()</span>
+    <span class="n">after_logout</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;h1&gt; Logout from User: </span><span class="si">{</span><span class="n">current_user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s1">  &lt;/h1&gt;&#39;</span>
+                   
+    <span class="k">return</span> <span class="n">after_logout</span>
+
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <p class="caption"><span class="caption-text">Requirements:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Development Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Auto Generated Code Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API section</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Anawat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

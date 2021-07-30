@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>backend.get_result &#8212; consha v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/agogo.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="../../index.html">consha v1 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for backend.get_result</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">backend.lr_base_model</span> <span class="kn">import</span> <span class="n">get_score</span>
+<span class="kn">from</span> <span class="nn">backend.recommendation</span> <span class="kn">import</span> <span class="n">get_recommendation</span>
+
+
+<span class="k">def</span> <span class="nf">_get_rf_json</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">api_key</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get response json from Rainforest API</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># asin = re.search(r&#39;dp/([^/]+)&#39;, url).group(1)</span>
+    <span class="n">asin</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;B[A-Z0-9]</span><span class="si">{9}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;api_key&#39;</span><span class="p">:</span> <span class="n">api_key</span><span class="p">,</span>
+        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;product&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;amazon_domain&#39;</span><span class="p">:</span> <span class="s1">&#39;amazon.com&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;asin&#39;</span><span class="p">:</span> <span class="n">asin</span>
+    <span class="p">}</span>
+    <span class="c1"># make the http GET request to Rainforest API</span>
+    <span class="n">api_result</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;https://api.rainforestapi.com/request&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+    <span class="c1"># print the JSON response from Rainforest API</span>
+    <span class="c1"># json_str = json.dumps(api_result.json())</span>
+    <span class="n">res_dict</span> <span class="o">=</span> <span class="n">api_result</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">res_dict</span>
+
+
+<span class="k">def</span> <span class="nf">_extract_from_rainforest</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts all needed information from Rainforest API request in preparation</span>
+<span class="sd">    to store in cached_data.amazon_products</span>
+<span class="sd">    database.</span>
+<span class="sd">    Lists datatypes converted to patterned strings to avoid headache of d</span>
+<span class="sd">    atatype declaration in RDS database</span>
+<span class="sd">    Some of these may need to be tested further (i.e. ingredients,</span>
+<span class="sd">    skin type, brand) since their location seemed to</span>
+<span class="sd">    vary for each request</span>
+
+<span class="sd">    :return: dictionary with keys being the schema of c</span>
+<span class="sd">    ached_data.amazon_products</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">target_product</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;product&#39;</span><span class="p">]</span>
+
+        <span class="c1"># asin</span>
+        <span class="n">asin</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;asin&#39;</span><span class="p">]</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;asin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">asin</span>
+
+        <span class="c1"># product link</span>
+        <span class="n">product_link</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;product_link&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">product_link</span>
+
+        <span class="c1"># product name</span>
+        <span class="n">product_title</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;product_title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">product_title</span>
+
+        <span class="c1"># product category</span>
+        <span class="n">product_category</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;categories&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;product_category&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">product_category</span>
+
+        <span class="c1"># product key words</span>
+        <span class="n">product_keywords</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;product&#39;</span><span class="p">][</span><span class="s1">&#39;keywords&#39;</span><span class="p">]</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;product_keywords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">product_keywords</span>
+
+        <span class="c1"># price</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;price&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;price&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;product&#39;</span><span class="p">][</span><span class="s1">&#39;buybox_winner&#39;</span><span class="p">][</span>
+                <span class="s1">&#39;price&#39;</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># product description</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;product_description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Not Available&#39;</span>
+        <span class="k">if</span> <span class="s1">&#39;description&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;product_description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="s1">&#39;a_plus_content&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s1">&#39;company_description_text&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;a_plus_content&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;product_description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">info</span><span class="p">[</span><span class="s1">&#39;a_plus_content&#39;</span><span class="p">][</span><span class="s1">&#39;company_description_text&#39;</span><span class="p">])</span>
+
+        <span class="c1"># feature_bullets</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;feature_bullets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Not Available&#39;</span>
+        <span class="k">if</span> <span class="s1">&#39;feature_bullets&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;feature_bullets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;feature_bullets_flat&#39;</span><span class="p">]</span>
+
+        <span class="c1"># image_url</span>
+        <span class="n">image_url</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;main_image&#39;</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;image_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_url</span>
+
+        <span class="c1"># ingredients</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;ingredients&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Not Available&#39;</span>
+        <span class="k">if</span> <span class="s1">&#39;important_information&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">important_info</span> <span class="ow">in</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;important_information&#39;</span><span class="p">][</span><span class="s1">&#39;sections&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;title&#39;</span> <span class="ow">in</span> <span class="n">important_info</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span>
+                <span class="p">)</span> <span class="ow">and</span> <span class="n">important_info</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Ingredients&#39;</span><span class="p">):</span>
+                    <span class="n">ingredients</span> <span class="o">=</span> <span class="n">important_info</span><span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">]</span>
+                    <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;ingredients&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ingredients</span>
+                    <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;ingredients&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_product</span><span class="p">[</span>
+                        <span class="s1">&#39;ingredients&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+                    <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;ingredients&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">item</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;ingredients&#39;</span><span class="p">]</span>
+                        <span class="p">]</span>
+
+        <span class="c1"># pulled from &quot;attributes&quot; subdirectory</span>
+        <span class="n">skin_type</span> <span class="o">=</span> <span class="s2">&quot;Not Available&quot;</span>
+        <span class="n">brand</span> <span class="o">=</span> <span class="s2">&quot;Not Available&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;attributes&#39;</span> <span class="ow">in</span> <span class="n">info</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Skin Type&#39;</span><span class="p">:</span>
+                    <span class="n">skin_type</span> <span class="o">=</span> <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Brand&#39;</span><span class="p">:</span>
+                    <span class="n">brand</span> <span class="o">=</span> <span class="n">attr</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;skin_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">skin_type</span>
+        <span class="n">target_product</span><span class="p">[</span><span class="s1">&#39;brand&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">brand</span>
+
+        <span class="k">return</span> <span class="n">target_product</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="get_result"><a class="viewcode-back" href="../../code.html#backend.get_result.get_result">[docs]</a><span class="k">def</span> <span class="nf">get_result</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">amazon_product_embeddings</span><span class="p">,</span> <span class="n">lr</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">Config</span><span class="o">.</span><span class="n">API_KEY</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Get relevance product information, score, and recommendation list</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        amazon url (only moiturizer)</span>
+<span class="sd">    api_key : str</span>
+<span class="sd">        RainForest API key</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        return all information required for front-end in dictionary format</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">_get_rf_json</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">api_key</span><span class="p">)</span>  <span class="c1"># get json from rainforest</span>
+    <span class="n">product_data</span> <span class="o">=</span> <span class="n">_extract_from_rainforest</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="c1"># preprocess description</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;product_description&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;feature_bullets&#39;</span><span class="p">]):</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;feature_bullets&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;product_description&#39;</span><span class="p">]</span>
+
+    <span class="n">description</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Skin Condition </span><span class="si">{</span><span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;skin_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">replace</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;product description&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+               <span class="p">(</span><span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;brand&#39;</span><span class="p">],</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">replace</span><span class="p">:</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+            <span class="n">element</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">element</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">description</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;asin&#39;</span><span class="p">:</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;asin&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;product_title&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;product_link&#39;</span><span class="p">:</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;product_link&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;image_url&#39;</span><span class="p">:</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;image_url&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;price&#39;</span><span class="p">:</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;price&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;product_keywords&#39;</span><span class="p">:</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;product_keywords&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">get_score</span><span class="p">(</span><span class="n">lr</span><span class="p">,</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;ingredients&#39;</span><span class="p">]),</span>
+            <span class="s1">&#39;recommendations&#39;</span><span class="p">:</span> <span class="n">get_recommendation</span><span class="p">(</span>
+                <span class="n">description</span><span class="p">,</span> <span class="n">amazon_product_embeddings</span><span class="p">),</span>
+            <span class="s1">&#39;ingredient&#39;</span><span class="p">:</span> <span class="n">product_data</span><span class="p">[</span><span class="s1">&#39;ingredients&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;desc&#39;</span><span class="p">:</span> <span class="n">description</span>
+            <span class="p">}</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <p class="caption"><span class="caption-text">Requirements:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Development Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../code.html">Auto Generated Code Documentation</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="../../py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="../../genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Anawat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

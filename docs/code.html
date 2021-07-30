@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Auto Generated Code Documentation &#8212; consha v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/agogo.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Development Tutorial" href="tutorial.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">consha v1 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="tutorial.html" title="Development Tutorial"
+             accesskey="P">previous</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="auto-generated-code-documentation">
+<h1>Auto Generated Code Documentation<a class="headerlink" href="#auto-generated-code-documentation" title="Permalink to this headline">¶</a></h1>
+<section id="module-backend.get_result">
+<span id="backend"></span><h2>backend<a class="headerlink" href="#module-backend.get_result" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="backend.get_result.get_result">
+<span class="sig-prename descclassname"><span class="pre">backend.get_result.</span></span><span class="sig-name descname"><span class="pre">get_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amazon_product_embeddings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'3D6C67742298499EA8CE8C15451C70EF'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/get_result.html#get_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.get_result.get_result" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get relevance product information, score, and recommendation list
+Parameters
+———-
+url : str</p>
+<blockquote>
+<div><p>amazon url (only moiturizer)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>api_key<span class="classifier">str</span></dt><dd><p>RainForest API key</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>dict</dt><dd><p>return all information required for front-end in dictionary format</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-backend.lr_base_model"></span><dl class="py function">
+<dt class="sig sig-object py" id="backend.lr_base_model.combine_features">
+<span class="sig-prename descclassname"><span class="pre">backend.lr_base_model.</span></span><span class="sig-name descname"><span class="pre">combine_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_amz_ingredient_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/lr_base_model.html#combine_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.lr_base_model.combine_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>combine features for score generating model.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="backend.lr_base_model.formatted_ewg_ingredient_score">
+<span class="sig-prename descclassname"><span class="pre">backend.lr_base_model.</span></span><span class="sig-name descname"><span class="pre">formatted_ewg_ingredient_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ewg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/lr_base_model.html#formatted_ewg_ingredient_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.lr_base_model.formatted_ewg_ingredient_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>calls the ewg ingredient database and creates array of
+ingredient, score lists.The scores are calculated as the mean
+score for that ingredient,because some ingredients have multiple scores.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="backend.lr_base_model.get_score">
+<span class="sig-prename descclassname"><span class="pre">backend.lr_base_model.</span></span><span class="sig-name descname"><span class="pre">get_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amz_ingredient_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/lr_base_model.html#get_score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.lr_base_model.get_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>covert asin list to list of product info dictionary</p>
+<dl class="simple">
+<dt>lr<span class="classifier">sklearn model</span></dt><dd><p>sklearn model (Random Forest)</p>
+</dd>
+<dt>amz_ingredient_list<span class="classifier">list</span></dt><dd><p>list of ingredients from amazon</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>int</dt><dd><p>consha score of 0-10 (lack of ingredients information gets -1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="backend.lr_base_model.ingredient_string_matching">
+<span class="sig-prename descclassname"><span class="pre">backend.lr_base_model.</span></span><span class="sig-name descname"><span class="pre">ingredient_string_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_amz_ingredient_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ewg_ingredient_scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/lr_base_model.html#ingredient_string_matching"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.lr_base_model.ingredient_string_matching" title="Permalink to this definition">¶</a></dt>
+<dd><p>Input: raw list of ingredients from amazon - list[str] and
+numpy array of ewg ingredients and score pairs
+Output: list of scores from ewg database - float</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="backend.lr_base_model.max_three_scores">
+<span class="sig-prename descclassname"><span class="pre">backend.lr_base_model.</span></span><span class="sig-name descname"><span class="pre">max_three_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ingredient_scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/lr_base_model.html#max_three_scores"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.lr_base_model.max_three_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creating feature: mean of top three ingredients.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="backend.lr_base_model.product_score_count">
+<span class="sig-prename descclassname"><span class="pre">backend.lr_base_model.</span></span><span class="sig-name descname"><span class="pre">product_score_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ingredient_scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/lr_base_model.html#product_score_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.lr_base_model.product_score_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creating feature:generates count of each score for a list of scores.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="backend.lr_base_model.remove_punct">
+<span class="sig-prename descclassname"><span class="pre">backend.lr_base_model.</span></span><span class="sig-name descname"><span class="pre">remove_punct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/lr_base_model.html#remove_punct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.lr_base_model.remove_punct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removing punctuation from a given string.
+Code from www.geeksforgeeks.org/python-remove-punctuation-from-string/</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="backend.lr_base_model.string_matching">
+<span class="sig-prename descclassname"><span class="pre">backend.lr_base_model.</span></span><span class="sig-name descname"><span class="pre">string_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ewg_string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amazon_ingredient</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/lr_base_model.html#string_matching"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.lr_base_model.string_matching" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches ewg ingredient strings with amazon ingredient strings.</p>
+</dd></dl>
+
+<span class="target" id="module-backend.recommendation"></span><dl class="py function">
+<dt class="sig sig-object py" id="backend.recommendation.get_recommendation">
+<span class="sig-prename descclassname"><span class="pre">backend.recommendation.</span></span><span class="sig-name descname"><span class="pre">get_recommendation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">amazon_product_embeddings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/backend/recommendation.html#get_recommendation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#backend.recommendation.get_recommendation" title="Permalink to this definition">¶</a></dt>
+<dd><p>covert asin list to list of product info dictionary</p>
+<dl class="simple">
+<dt>description<span class="classifier">str</span></dt><dd><p>product description</p>
+</dd>
+<dt>amazon_product_embeddings<span class="classifier">pd.DataFrame</span></dt><dd><p>description embeddings of all amazon product</p>
+</dd>
+<dt>threshold<span class="classifier">int (default=7)</span></dt><dd><p>lower threshold of consha score (consha_score &gt; threshold)</p>
+</dd>
+<dt>n<span class="classifier">int (default=3)</span></dt><dd><p>number of product return</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>list of dict</dt><dd><p>list of product info dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          
+          <h3>Table of Contents</h3>
+          <p class="caption"><span class="caption-text">Requirements:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Development Tutorial</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Auto Generated Code Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-backend.get_result">backend</a></li>
+</ul>
+</li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+            </form>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="tutorial.html" title="Development Tutorial"
+              >previous</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/code.rst.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Anawat.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.2.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
